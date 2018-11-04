@@ -515,6 +515,14 @@ The following functions must be available:
 +---------------------------------------------+-----------------------------------------------------------------+
 | keccak256(p:u256, s:u256) -> v:u256         | keccak(mem[p...(p+s)))                                          |
 +---------------------------------------------+-----------------------------------------------------------------+
+| *Object access*                             |                                                                 |
++---------------------------------------------+-----------------------------------------------------------------+
+| datasize(name:string) -> size:u256          | size of the data object in bytes                                |
++---------------------------------------------+-----------------------------------------------------------------+
+| dataoffset(name:string) -> offset:u256      | offset of the data object inside the data area in bytes         |
++---------------------------------------------+-----------------------------------------------------------------+
+| datacopy(t:u256, o:u256, s:u256)            | copy s bytes from the data area to memory at position t         |
++---------------------------------------------+-----------------------------------------------------------------+
 
 Backends
 --------
@@ -540,6 +548,10 @@ TBD
 Specification of Yul Object
 ===========================
 
+Yul objects are used to group named code and data sections.
+The functions ``datasize``, ``dataoffset`` and ``datacopy``
+can be used to access these sections from within code.
+
 Grammar::
 
     TopLevelObject = 'object' '{' Code? ( Object | Data )* '}'
@@ -560,11 +572,11 @@ An example Yul Object is shown below:
     // made accessible to the special built-in functions datacopy / dataoffset / datasize
     object {
         code {
-            let size = datasize("runtime")
-            let offset = allocate(size)
+            let size := datasize("runtime")
+            let offset := allocate(size)
             // This will turn into a memory->memory copy for eWASM and
             // a codecopy for EVM
-            datacopy(dataoffset("runtime"), offset, size)
+            datacopy(offset, dataoffset("runtime"), size)
             // this is a constructor and the runtime code is returned
             return(offset, size)
         }
@@ -579,7 +591,7 @@ An example Yul Object is shown below:
                 let offset = allocate(size)
                 // This will turn into a memory->memory copy for eWASM and
                 // a codecopy for EVM
-                datacopy(dataoffset("Contract2"), offset, size)
+                datacopy(offset, dataoffset("Contract2"), size)
                 // constructor parameter is a single number 0x1234
                 mstore(add(offset, size), 0x1234)
                 create(offset, add(size, 32))
