@@ -4,6 +4,7 @@ Language Features:
 
 
 Compiler Features:
+ * Code generator: Do not perform redundant double cleanup on unsigned integers when loading from calldata.
 
 
 Bugfixes:
