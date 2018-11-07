@@ -551,13 +551,16 @@ Specification of Yul Object
 Yul objects are used to group named code and data sections.
 The functions ``datasize``, ``dataoffset`` and ``datacopy``
 can be used to access these sections from within code.
+Hex strings can be used to specify data in hex encoding,
+regular strings in native encoding. For code,
+``datacopy`` will access its assembled binary representation.
 
 Grammar::
 
     TopLevelObject = 'object' '{' Code? ( Object | Data )* '}'
     Object = 'object' StringLiteral '{' Code? ( Object | Data )* '}'
     Code = 'code' Block
-    Data = 'data' StringLiteral HexLiteral
+    Data = 'data' StringLiteral ( HexLiteral | StringLiteral )
     HexLiteral = 'hex' ('"' ([0-9a-fA-F]{2})* '"' | '\'' ([0-9a-fA-F]{2})* '\'')
     StringLiteral = '"' ([^"\r\n\\] | '\\' .)* '"'
 
@@ -570,7 +573,10 @@ An example Yul Object is shown below:
     // Code consists of a single object. A single "code" node is the code of the object.
     // Every (other) named object or data section is serialized and
     // made accessible to the special built-in functions datacopy / dataoffset / datasize
-    object {
+    // Access to nested objects can be performed by joining the names using ``.``.
+    // The current object and sub-objects and data items inside the current object
+    // are in scope without nested access.
+    object "Contract1" {
         code {
             let size := datasize("runtime")
             let offset := allocate(size)
