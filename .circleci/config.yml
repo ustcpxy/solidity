@@ -139,6 +139,37 @@ jobs:
           paths:
             - "*"
 
+  build_x86_linux_static:
+    docker:
+      - image: buildpack-deps:latest
+    environment:
+      TERM: xterm
+    steps:
+      - checkout
+      - run: mkdir -p /root/.local/bin
+      - run: echo 'export PATH=/root/.local/bin:$PATH' >> $BASH_ENV
+      - run:
+          name: Install build dependencies
+          command: |
+            apt-get -qq update
+            apt-get -qy install libboost-regex-dev libboost-filesystem-dev libboost-test-dev libboost-system-dev libboost-program-options-dev
+            ./scripts/install_cmake.sh
+            ./scripts/install_obsolete_jsoncpp_1_7_4.sh
+            ./scripts/install_static_z3.sh
+      - run: *setup_prerelease_commit_hash
+      - run:
+          name: Static Build
+          command: |
+            mkdir -p build
+            cd build
+            cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DSOLC_LINK_STATIC=ON -DLLLC_LINK_STATIC=ON -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++"
+            make -j4
+      - store_artifacts: *solc_artifact
+      - persist_to_workspace:
+          root: build
+          paths:
+            - "*"
+
   build_x86_clang7:
     docker:
       - image: buildpack-deps:cosmic
@@ -319,6 +350,7 @@ workflows:
           requires:
             - build_emscripten
       - build_x86_linux: *build_on_tags
+      - build_x86_linux_static: *build_on_tags
       - build_x86_clang7: *build_on_tags
       - build_x86_mac: *build_on_tags
       - test_x86_linux:
