@@ -74,10 +74,10 @@ public:
 protected:
 	std::string uniqueSymbol(unsigned _index) const;
 
-	TypePointer m_type = nullptr;
+	TypePointer m_type;
 	std::string m_uniqueName;
 	smt::SolverInterface& m_interface;
-	std::shared_ptr<SSAVariable> m_ssa = nullptr;
+	std::shared_ptr<SSAVariable> m_ssa;
 };
 
 /**
@@ -166,6 +166,27 @@ public:
 		std::string const& _uniqueName,
 		smt::SolverInterface& _interface
 	);
+};
+
+class SymbolicFunctionDeclaration
+{
+public:
+	SymbolicFunctionDeclaration(
+		smt::SortPointer const& _sort,
+		std::string const& _uniqueName,
+		smt::SolverInterface& _interface
+	);
+	SymbolicFunctionDeclaration(
+		FunctionTypePointer const& _type,
+		std::string const& _uniqueName,
+		smt::SolverInterface& _interface
+	);
+
+	// Applies the function to the given arguments.
+	smt::Expression operator()(std::vector<smt::Expression> _arguments);
+
+private:
+	smt::Expression m_declaration;
 };
 
 }

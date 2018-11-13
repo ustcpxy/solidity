@@ -30,7 +30,8 @@ namespace solidity
 
 /// Returns the SMT sort that models the Solidity type _type,
 /// including sub sorts (for Array, for example).
-std::shared_ptr<smt::Sort> smtSort(Type const& _type);
+smt::SortPointer smtSort(Type const& _type);
+std::vector<smt::SortPointer> smtSort(std::vector<TypePointer> const& _types);
 /// Returns the SMT kind that models the Solidity type type category _category.
 smt::Kind smtKind(Type::Category _category);
 

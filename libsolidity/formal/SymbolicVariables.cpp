@@ -144,3 +144,26 @@ SymbolicFixedBytesVariable::SymbolicFixedBytesVariable(
 	SymbolicIntVariable(make_shared<IntegerType>(_numBytes * 8), _uniqueName, _interface)
 {
 }
+
+SymbolicFunctionDeclaration::SymbolicFunctionDeclaration(
+	smt::SortPointer const& _sort,
+	string const& _uniqueName,
+	smt::SolverInterface& _interface
+):
+	m_declaration(_interface.newVariable(_uniqueName, _sort))
+{
+}
+
+SymbolicFunctionDeclaration::SymbolicFunctionDeclaration(
+	FunctionTypePointer const& _type,
+	string const& _uniqueName,
+	smt::SolverInterface& _interface
+):
+	m_declaration(_interface.newVariable(_uniqueName, smtSort(*_type)))
+{
+}
+
+smt::Expression SymbolicFunctionDeclaration::operator()(vector<smt::Expression> _arguments)
+{
+	return m_declaration(std::move(_arguments));
+}

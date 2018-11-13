@@ -24,7 +24,7 @@
 using namespace std;
 using namespace dev::solidity;
 
-shared_ptr<smt::Sort> dev::solidity::smtSort(Type const& _type)
+smt::SortPointer dev::solidity::smtSort(Type const& _type)
 {
 	auto const& category = _type.category();
 	if (isNumber(category))
@@ -37,7 +37,25 @@ shared_ptr<smt::Sort> dev::solidity::smtSort(Type const& _type)
 		solAssert(mapType, "");
 		return make_shared<smt::ArraySort>(smtSort(*mapType->keyType()), smtSort(*mapType->valueType()));
 	}
+	else if (isFunction(category))
+	{
+		auto fType = dynamic_cast<FunctionType const*>(&_type);
+		solAssert(fType, "");
+		vector<smt::SortPointer> parameterSorts = smtSort(fType->parameterTypes());
+		auto returnTypes = fType->returnParameterTypes();
+		solAssert(returnTypes.size() == 1, "");
+		smt::SortPointer returnSort = smtSort(*returnTypes.at(0));
+		return make_shared<smt::FunctionSort>(parameterSorts, returnSort);
+	}
 	solAssert(false, "Invalid type");
+}
+
+vector<smt::SortPointer> dev::solidity::smtSort(vector<TypePointer> const& _types)
+{
+	vector<smt::SortPointer> sorts;
+	for (auto const& type: _types)
+		sorts.push_back(smtSort(*type));
+	return sorts;
 }
 
 smt::Kind dev::solidity::smtKind(Type::Category _category)
@@ -48,6 +66,8 @@ smt::Kind dev::solidity::smtKind(Type::Category _category)
 		return smt::Kind::Bool;
 	else if (isMapping(_category))
 		return smt::Kind::Array;
+	else if (isFunction(_category))
+		return smt::Kind::Function;
 	solAssert(false, "Invalid type");
 }
 
